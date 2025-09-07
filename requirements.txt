@@ -1,0 +1,5 @@
+camelot-py[cv]
+opencv-python
+pdf2image
+ghostscript
+pandas
