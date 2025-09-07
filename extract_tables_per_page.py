@@ -18,15 +18,14 @@ except Exception:
 def post_process_and_structure(raw_text):
     """
     Analyzes raw text to build a structured JSON object.
-    This function is now used for both full-document and per-page analysis.
+    This function is used for both full-document and per-page analysis.
     """
     structured_output = {
         "document_type": "Unknown", "invoice_number": None, "date": None,
         "summary": {"subtotal": None, "vat": None, "total": None},
-        "detected_line_items": [] # Renamed for clarity
+        "detected_line_items": []
     }
-
-    # Use a temporary variable for full text to avoid modifying the input
+    
     full_text_for_analysis = raw_text.replace('  ', ' ')
 
     if re.search(r'חשבונית מס', full_text_for_analysis): structured_output['document_type'] = 'Tax Invoice'
@@ -62,7 +61,7 @@ def post_process_and_structure(raw_text):
 def analyze_scanned_document_with_ocr(pdf_path, output_dir="output"):
     """
     Main orchestrator for scanned/image-based PDFs.
-    Now provides both a full-document analysis and a per-page breakdown.
+    Provides full-document analysis, per-page breakdown, and saves page images.
     """
     if not os.path.exists(output_dir):
         os.makedirs(output_dir)
@@ -70,16 +69,19 @@ def analyze_scanned_document_with_ocr(pdf_path, output_dir="output"):
     print("Step 1: Converting PDF pages to high-resolution images...")
     images = convert_from_path(pdf_path, dpi=300)
     
-    # NEW: Store content of each page separately
     pages_content = []
 
     for page_num, image in enumerate(images):
         print(f"\n--- Processing Page {page_num + 1} ---")
         
+        # --- NEW: Save the image of the current page ---
+        page_image_path = os.path.join(output_dir, f'page_{page_num + 1}.png')
+        image.save(page_image_path, 'PNG')
+        print(f"Saved page image to: {page_image_path}")
+        
         # --- OCR STEP ---
         print(f"Step 2: Performing OCR on page {page_num + 1}...")
         try:
-            # lang='heb+eng' tells Tesseract to look for both Hebrew and English characters.
             page_text = pytesseract.image_to_string(image, lang='heb+eng')
             pages_content.append({
                 "page_number": page_num + 1,
