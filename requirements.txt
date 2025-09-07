@@ -3,3 +3,5 @@ opencv-python
 pdf2image
 ghostscript
 pandas
+pytesseract
+Pillow
